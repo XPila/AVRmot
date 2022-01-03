@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <avr/pgmspace.h>
 #include "cmd.h"
-#include "mmctl/mmctl.h"
+#include "mmctl.h"
 
 
 // initialization after reset
@@ -18,8 +18,6 @@ void setup(void)
 void loop(void)
 {
 	cmd_process();
-//	if ((timer0_ms % 1000) == 0)
-//		fprintf_P(cmd_err, PSTR("%lu\n"), timer0_ms); //startup message
 }
 
 // main

@@ -1,4 +1,12 @@
 eclipse.preferences.version=1
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/BUILD_CONFIGURATION/delimiter=;
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/BUILD_CONFIGURATION/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/BUILD_CONFIGURATION/value=einsy
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/PATH/delimiter=;
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/PATH/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/PATH/value=C\:\\arduino-1.8.6\\hardware\\tools\\avr\\bin;D\:\\TrueSTUDIO for STM32 9.3.0\\Tools;C\:\\Program Files\\Git\\cmd
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182.1747549086/appendContributed=true
 environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182/BUILD_CONFIGURATION/delimiter=;
 environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182/BUILD_CONFIGURATION/operation=replace
 environment/project/cdt.managedbuild.toolchain.gnu.mingw.base.1408353977.108504182/BUILD_CONFIGURATION/value=mmctl

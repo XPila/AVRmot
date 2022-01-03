@@ -1,7 +1,7 @@
-// tmc2130_mmctl.c
+// tmc2130_hw_mmctl.c
 
+#include "tmc2130_hw.h"
 #include <avr/pgmspace.h>
-#include "tmc2130_mmctl.h"
 #include "tmc2130.h"
 #include "gpio_atmega32u4.h"
 #include "spi.h"

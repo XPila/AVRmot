@@ -1,4 +1,4 @@
-// gpio_atmega2560.h
+// gpio_atmega32u4.h
 #ifndef _GPIO_ATMEGA32U4
 #define _GPIO_ATMEGA32U4
 

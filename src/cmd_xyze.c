@@ -1,9 +1,8 @@
 // cmd_xyz.c
-#include "cmd_mmctl.h"
+#include "cmd_xyze.h"
 #include <util/delay.h>
-#include "mmctl.h"
-#include "tmc2130_mmctl.h"
 #include "tmc2130.h"
+#include "tmc2130_hw.h"
 #include "st4.h"
 
 

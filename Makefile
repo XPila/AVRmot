@@ -3,8 +3,8 @@
 PROJECT ?= AVRmot
 # build configuration list
 BUILD_CONFIGURATIONS  := einsy mmctl slactl
-# selected build configuration, default is mmctl
-BUILD_CONFIGURATION  ?= mmctl
+# selected build configuration, default is einsy
+BUILD_CONFIGURATION  ?= einsy
 # check valid build configuration
 ifneq (,$(filter-out $(BUILD_CONFIGURATIONS), $(BUILD_CONFIGURATION)))
 $(error invalid configuration "$(BUILD_CONFIGURATION)")
@@ -14,7 +14,11 @@ endif
 BUILD := elf sym hex bin lst
 
 # board number (10=einsy, 20=mmctl, 30=slactl)
-BOARD ?= $(subst mmctl,20,$(BUILD_CONFIGURATION))
+BOARD := $(strip \
+$(if $(findstring $(BUILD_CONFIGURATION),einsy),10,\
+$(if $(findstring $(BUILD_CONFIGURATION),mmctl),20,\
+$(if $(findstring $(BUILD_CONFIGURATION),slactl),30,\
+))))
 ifneq (,$(filter-out 10 20 30, $(BOARD)))
 $(error invalid board "$(BOARD)")
 endif
@@ -25,7 +29,7 @@ MCU := $(if $(findstring $(BOARD),20 30),atmega32u4,$(if $(findstring $(BOARD),1
 F_CPU := 16000000
 
 # default buildnumber from git
-#GIT_BUILD_NUMBER := $(shell git rev-list --count HEAD)
+GIT_BUILD_NUMBER := $(shell git rev-list --count HEAD)
 FW_BUILD_NUMBER ?= $(if $(GIT_BUILD_NUMBER),$(GIT_BUILD_NUMBER),0)
 # firmware version from file 'version.txt', format '0.9-BETA'
 FW_VERSION ?= $(file < version.txt)
@@ -36,7 +40,7 @@ FW_VERSION_FULL ?= $(FW_VERSION)+$(FW_BUILD_NUMBER)
 GCCSTD := gnu99
 GPPSTD := c++98
 
-# target platform prefix ('avr' or '', automaticaly determined from BUILD_CONFIGURATION)
+# target platform prefix
 TOOLCHAIN_PREFIX := avr
 
 # file path separator (for unix '/', for windows '\\', automaticaly determined from PATH)
@@ -78,14 +82,15 @@ OUTBIN := $(OUT)/$(PROJECT).bin # bin output file
 OUTLST := $(OUT)/$(PROJECT).lst # lst output file
 
 # all source
-ifneq ("$(wildcard srclist)","")
-ALLSRC := $(file < srclist)
-else
 ALLSRC := $(addprefix src/,\
-main.c timer0.c sys.c uart.c rbuf.c cmd.c adc.c gpio_$(MCU).c tmc2130.c st4.c\
-$(addprefix mmctl/,mmctl.c cmd_mmctl.c cmd_xyz.c shr16.c tmc2130_mmctl.c)\
+timer0.c sys.c uart.c rbuf.c adc.c gpio_$(MCU).c tmc2130.c st4.c cmd.c cmd_xyze.c \
 )
-endif
+# einsy source
+ALLSRC += $(if $(findstring $(BOARD),10),\
+$(addprefix src/einsy/,main.c einsy.c cmd_einsy.c tmc2130_hw_einsy.c))
+# mmctl source
+ALLSRC += $(if $(findstring $(BOARD),20),\
+$(addprefix src/mmctl/,main.c mmctl.c cmd_mmctl.c shr16.c tmc2130_hw_mmctl.c))
 
 # external definitions
 SYMBOLS := $(addprefix -D,\
@@ -97,7 +102,7 @@ FW_VERSION_FULL=$(FW_VERSION_FULL)\
 
 # include directories
 INCLUDES := $(addprefix -I./,\
-src\
+src src/mmctl \
 )
 
 # common flags (compilers and linker)
@@ -185,13 +190,14 @@ ifneq ("$(wildcard $(OUT))","")
 endif
 
 
-flash: hex
-	$(AVRDUDE) -p ATmega32u4 -P usb -c usbasp -F -v -u -V -U flash:w:$(OUTHEX)
-#c:\arduino-1.8.5\hardware\tools\avr\bin\avrdude -C c:\arduino-1.8.5\hardware\tools\avr\etc\avrdude.conf -p ATmega32u4 -P usb -c usbasp -F -v -u -V -U flash:w:Leonardo-prod-firmware-2012-12-10.hex
-#PAUSE
+flash_usbasp: hex
+	$(AVRDUDE) -p $(MCU) -P usb -c usbasp -F -v -u -V -U flash:w:$(OUTHEX)
+
+flash_wiring: hex
+	$(AVRDUDE) -p $(MCU) -P usb -c usbasp -F -v -u -V -U flash:w:$(OUTHEX)
 
 
-.PHONY: all build clean flash test
+.PHONY: all build clean flash_usbasp flash_wiring test
 
 
 test:
@@ -227,7 +233,6 @@ printvars:
 	@echo OUTMAP=$(OUTMAP)
 	@echo OUTHEX=$(OUTHEX)
 	@echo OUTBIN=$(OUTBIN)
-	@echo OUTEXE=$(OUTEXE)
 	@echo ALLSRC=$(ALLSRC)
 	@echo SYMBOLS=$(SYMBOLS)
 	@echo INCLUDES=$(INCLUDES)

@@ -1,12 +1,12 @@
-// cmd_mmctl.c
-#include "cmd_mmctl.h"
+// cmd_einsy.c
+#include "cmd_einsy.h"
 #include <string.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "config.h"
 #include "sys.h"
 #include "shr16.h"
-#include "mmctl.h"
+#include "einsy.h"
 #include "tmc2130.h"
 #include "tmc2130_hw.h"
 
@@ -69,8 +69,6 @@ const uint8_t PROGMEM cmd_ext_3[] = {
 'l','o','g',CMD_ID_LOG,
 'e','r','r',CMD_ID_ERR,
 'a','d','c',CMD_ID_ADC,
-'s','h','r',CMD_ID_SHR,
-'l','e','d',CMD_ID_LED,
 'e','n','a',CMD_ID_ENA,
 'p','o','s',CMD_ID_POS,
 'r','e','s',CMD_ID_RES,
@@ -170,12 +168,6 @@ int8_t cmd_do_mod_wout_args(uint8_t mod_id, char pref, uint8_t cmd_id)
 			case CMD_ID_ERR:
 				cmd_print_ui8(0);
 				return CMD_OK;
-			case CMD_ID_SHR:
-				cmd_print_ui16(shr16_v);
-				return CMD_OK;
-			case CMD_ID_LED:
-				cmd_print_ui16(mmctl_get_led());
-				return CMD_OK;
 			}
 		}
 	}
@@ -217,14 +209,6 @@ int8_t cmd_do_mod_with_args(uint8_t mod_id, char pref, uint8_t cmd_id, char* pst
 				if ((ret = cmd_scan_ui8(pstr, &val0.ui8)) < 0) return ret;
 				//log = val0.ui8;
 				return CMD_OK;
-			case CMD_ID_SHR:
-				if ((ret = cmd_scan_ui16(pstr, &val0.ui16)) < 0) return ret;
-				shr16_write(val0.ui16);
-				return CMD_OK;
-			case CMD_ID_LED:
-				if ((ret = cmd_scan_ui16(pstr, &val0.ui16)) < 0) return ret;
-				mmctl_set_led(val0.ui16);
-				return CMD_OK;
 			case CMD_ID_GPIO:
 				if ((ret = cmd_scan_ui8(pstr, &val0.ui8)) < 0) return ret;
 				if ((ret = cmd_scan_ui8(pstr + ret, &val1.ui8)) < 0) return ret;
@@ -239,7 +223,7 @@ int8_t cmd_do_mod_with_args(uint8_t mod_id, char pref, uint8_t cmd_id, char* pst
 			case CMD_ID_ADC:
 				if ((ret = cmd_scan_ui8(pstr, &val0.ui8)) < 0) return ret;
 				if (val0.ui8 > 1) return CMD_ER_OOR;
-				cmd_print_ui16(mmctl_get_adc(val0.ui8));
+				cmd_print_ui16(einsy_get_adc(val0.ui8));
 				return CMD_OK;
 			case CMD_ID_GPIO:
 				if ((ret = cmd_scan_ui8(pstr, &val0.ui8)) < 0) return ret;
@@ -257,7 +241,7 @@ int8_t cmd_do_with_args(uint16_t mod_msk, char pref, uint8_t cmd_id, char* pstr)
 	if (mod_msk == MOD_MSK_0)
 		return cmd_do_mod_with_args(MOD_ID_0, pref, cmd_id, pstr);
 	else
-		if (mod_msk & MOD_MSK_XYZ)
+		if (mod_msk & MOD_MSK_XYZE)
 		{
 			int8_t ret = 0;
 			int8_t n = 0;
@@ -274,6 +258,12 @@ int8_t cmd_do_with_args(uint16_t mod_msk, char pref, uint8_t cmd_id, char* pstr)
 				n += ret;
 			}
 			if (mod_msk & MOD_MSK_Z)
+			{
+				while (pstr[n] == ' ') n++;
+				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;
+				n += ret;
+			}
+			if (mod_msk & MOD_MSK_E)
 			{
 				while (pstr[n] == ' ') n++;
 				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;

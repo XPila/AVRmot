@@ -20,8 +20,6 @@ enum
 	CMD_ID_GPIO     = 0x41, // gpio
 	CMD_ID_GPCF     = 0x42, // gpcf
 	CMD_ID_ADC      = 0x43, // adc
-	CMD_ID_SHR      = 0x44, // shr16
-	CMD_ID_LED      = 0x45, // led state
 
 };
 

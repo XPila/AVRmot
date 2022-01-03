@@ -15,7 +15,7 @@
 #include "adc.h"
 #include "shr16.h"
 #include "tmc2130.h"
-#include "tmc2130_mmctl.h"
+#include "tmc2130_hw.h"
 #include "st4.h"
 #include "cmd.h"
 #include "gpio_atmega32u4.h"

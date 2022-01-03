@@ -28,6 +28,22 @@ enum
 	TYPE_FLOAT = 0x08,
 };
 
+enum
+{
+	MOD_ID_0 = 0xff,
+};
+
+enum
+{
+	MOD_MSK_0 = 0x0000,
+};
+
+enum
+{
+	CMD_ID_unk      = 0xff, // unknown commad
+	CMD_ID_         = 0x00, // empty commad
+};
+
 // variant union type
 typedef union
 {
