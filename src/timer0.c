@@ -1,4 +1,5 @@
-//timer0.c
+// timer0.c
+
 #include "timer0.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>

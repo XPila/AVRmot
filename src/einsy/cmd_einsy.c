@@ -1,11 +1,11 @@
 // cmd_einsy.c
+
 #include "cmd_einsy.h"
 #include <string.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "config.h"
 #include "sys.h"
-#include "shr16.h"
 #include "einsy.h"
 #include "tmc2130.h"
 #include "tmc2130_hw.h"
@@ -15,8 +15,8 @@
 #define STR(x)  _STR(x)
 const char PROGMEM fw_version_full[] = STR(FW_VERSION_FULL);
 
-int8_t cmd_do_mod_wout_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id);
-int8_t cmd_do_mod_with_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id, char* pstr);
+int8_t cmd_do_mod_wout_args_xyze(uint8_t mod_id, char pref, uint8_t cmd_id);
+int8_t cmd_do_mod_with_args_xyze(uint8_t mod_id, char pref, uint8_t cmd_id, char* pstr);
 
 
 // parse module bitmask
@@ -46,6 +46,15 @@ int8_t cmd_parse_mod_msk(char* pstr, uint16_t* pmod_msk)
 				case 'Z':
 					*pmod_msk = MOD_MSK_Z;
 					return 1;
+				case 'E':
+					*pmod_msk = MOD_MSK_E;
+					return 1;
+				}
+			case 2:
+				if ((pstr[0] == 'X') && (pstr[1] == 'Y'))
+				{
+					*pmod_msk = MOD_MSK_XY;
+					return 2;
 				}
 			case 3:
 				if ((pstr[0] == 'X') && (pstr[1] == 'Y') && (pstr[2] == 'Z'))
@@ -53,11 +62,17 @@ int8_t cmd_parse_mod_msk(char* pstr, uint16_t* pmod_msk)
 					*pmod_msk = MOD_MSK_XYZ;
 					return 3;
 				}
+			case 4:
+				if ((pstr[0] == 'X') && (pstr[1] == 'Y') && (pstr[2] == 'Z') && (pstr[3] == 'E'))
+				{
+					*pmod_msk = MOD_MSK_XYZE;
+					return 4;
+				}
 			}
 			break;
 		}
 		n++;
-	} while (n <= 3);
+	} while (n <= 4);
 	return CMD_ER_SYN;
 }
 
@@ -86,6 +101,7 @@ const uint8_t PROGMEM cmd_ext_4[] = {
 'g','p','i','o',CMD_ID_GPIO,
 'g','p','c','f',CMD_ID_GPCF,
 's','t','e','p',CMD_ID_STEP,
+'h','o','m','e',CMD_ID_HOME,
 };
 
 uint8_t cmd_parse_tab_P(char* pstr, const uint8_t* ptab, uint8_t len, uint8_t cnt)
@@ -124,6 +140,9 @@ int8_t cmd_parse_cmd_id(char* pstr, uint8_t* pcmd_id)
 	return CMD_ER_SYN;
 }
 
+extern uint16_t st4_test_index;               // test index
+extern uint16_t st4_test_buff[2048];          // test buffer
+
 int8_t cmd_do_mod_wout_args(uint8_t mod_id, char pref, uint8_t cmd_id)
 {
 //	uint8_t val;
@@ -138,13 +157,22 @@ int8_t cmd_do_mod_wout_args(uint8_t mod_id, char pref, uint8_t cmd_id)
 				sys_reset();
 				return CMD_OK;
 			case CMD_ID_TST:
-			{
-				for (int i = 0; i < 1000; i++)
 				{
-					tmc2130_step(7);
-					_delay_us(500);
+//				for (int i = 0; i < 1000; i++)
+//				{
+//					tmc2130_step(7);
+//					_delay_us(500);
+//				}
+					if (st4_test_index < 2000)
+					{
+						int count = st4_test_index--;
+						for (int i = 0; i < count; i++)
+						{
+							fprintf_P(cmd_err, PSTR("%d %u\n"), i, st4_test_buff[st4_test_index--]);
+						}
+					}
+					st4_test_index = 0;
 				}
-			}
 				return CMD_OK;
 			}
 		}
@@ -156,7 +184,7 @@ int8_t cmd_do_mod_wout_args(uint8_t mod_id, char pref, uint8_t cmd_id)
 				cmd_print_ui16(0);
 				return CMD_OK;
 			case CMD_ID_VER:
-				fprintf_P(cmd_out, PSTR("AVRmot_MMCtl %S "), fw_version_full);
+				fprintf_P(cmd_out, PSTR("AVRmot_Einsy %S "), fw_version_full);
 				return CMD_OK;
 			case CMD_ID_SER:
 				fprintf_P(cmd_out, PSTR("0123456789"));
@@ -179,15 +207,17 @@ int8_t cmd_do_wout_args(uint16_t mod_msk, char pref, uint8_t cmd_id)
 	if (mod_msk == MOD_MSK_0)
 		return cmd_do_mod_wout_args(MOD_ID_0, pref, cmd_id);
 	else
-		if (mod_msk & MOD_MSK_XYZ)
+		if (mod_msk & MOD_MSK_XYZE)
 		{
 			int8_t ret = CMD_OK;
 			if (mod_msk & MOD_MSK_X)
-				if ((ret = cmd_do_mod_wout_args_xyz(MOD_ID_X, pref, cmd_id)) < 0) return ret;
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_X, pref, cmd_id)) < 0) return ret;
 			if (mod_msk & MOD_MSK_Y)
-				if ((ret = cmd_do_mod_wout_args_xyz(MOD_ID_Y, pref, cmd_id)) < 0) return ret;
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_Y, pref, cmd_id)) < 0) return ret;
 			if (mod_msk & MOD_MSK_Z)
-				if ((ret = cmd_do_mod_wout_args_xyz(MOD_ID_Z, pref, cmd_id)) < 0) return ret;
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_Z, pref, cmd_id)) < 0) return ret;
+			if (mod_msk & MOD_MSK_E)
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_E, pref, cmd_id)) < 0) return ret;
 			return ret;
 		}
 	return CMD_ER_SYN;
@@ -248,25 +278,25 @@ int8_t cmd_do_with_args(uint16_t mod_msk, char pref, uint8_t cmd_id, char* pstr)
 			if (mod_msk & MOD_MSK_X)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_X, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_X, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			if (mod_msk & MOD_MSK_Y)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Y, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_Y, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			if (mod_msk & MOD_MSK_Z)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			if (mod_msk & MOD_MSK_E)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_E, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			return CMD_OK;

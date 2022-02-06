@@ -29,8 +29,6 @@ const tmc2130_slave_config_t PROGMEM cfg2130 = {
 
 void tmc2130_init(void)
 {
-	tmc2130_slave_config_t cfg;
-	memcpy_P(&cfg, &cfg2130, sizeof(tmc2130_slave_config_t));
 //	shr16_set_ena(0); // TMC_X_ENA,TMC_Y_ENA,TMC_Z_ENA high (motor disabled)
 //	shr16_set_dir(0); // TMC_X_DIR,TMC_Y_DIR,TMC_Z_DIR low (forward direction)
 	GPIO_OUT(TMC2130_X_STP);
@@ -45,6 +43,8 @@ void tmc2130_init(void)
 	GPIO_SET_H(TMC2130_X_CS);
 	GPIO_SET_H(TMC2130_Y_CS);
 	GPIO_SET_H(TMC2130_Z_CS);
+	tmc2130_slave_config_t cfg;
+	memcpy_P(&cfg, &cfg2130, sizeof(tmc2130_slave_config_t));
 	tmc2130_init_slave(0, &cfg);
 	tmc2130_init_slave(1, &cfg);
 	tmc2130_init_slave(2, &cfg);

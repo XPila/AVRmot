@@ -1,4 +1,5 @@
 // gpio_atmega2560.h
+
 #ifndef _GPIO_ATMEGA2560
 #define _GPIO_ATMEGA2560
 
@@ -65,6 +66,30 @@
 #define GPIO_PH5   0x75
 #define GPIO_PH6   0x76
 #define GPIO_PH7   0x77
+#define GPIO_PJ0   0x80
+#define GPIO_PJ1   0x81
+#define GPIO_PJ2   0x82
+#define GPIO_PJ3   0x83
+#define GPIO_PJ4   0x84
+#define GPIO_PJ5   0x85
+#define GPIO_PJ6   0x86
+#define GPIO_PJ7   0x87
+#define GPIO_PK0   0x90
+#define GPIO_PK1   0x91
+#define GPIO_PK2   0x92
+#define GPIO_PK3   0x93
+#define GPIO_PK4   0x94
+#define GPIO_PK5   0x95
+#define GPIO_PK6   0x96
+#define GPIO_PK7   0x97
+#define GPIO_PL0   0xa0
+#define GPIO_PL1   0xa1
+#define GPIO_PL2   0xa2
+#define GPIO_PL3   0xa3
+#define GPIO_PL4   0xa4
+#define GPIO_PL5   0xa5
+#define GPIO_PL6   0xa6
+#define GPIO_PL7   0xa7
 
 #define __BIT_0x00   0
 #define __BIT_0x01   1
@@ -128,6 +153,30 @@
 #define __BIT_0x75   5
 #define __BIT_0x76   6
 #define __BIT_0x77   7
+#define __BIT_0x80   0
+#define __BIT_0x81   1
+#define __BIT_0x82   2
+#define __BIT_0x83   3
+#define __BIT_0x84   4
+#define __BIT_0x85   5
+#define __BIT_0x86   6
+#define __BIT_0x87   7
+#define __BIT_0x90   0
+#define __BIT_0x91   1
+#define __BIT_0x92   2
+#define __BIT_0x93   3
+#define __BIT_0x94   4
+#define __BIT_0x95   5
+#define __BIT_0x96   6
+#define __BIT_0x97   7
+#define __BIT_0xa0   0
+#define __BIT_0xa1   1
+#define __BIT_0xa2   2
+#define __BIT_0xa3   3
+#define __BIT_0xa4   4
+#define __BIT_0xa5   5
+#define __BIT_0xa6   6
+#define __BIT_0xa7   7
 
 #define __PIN_0x00   PINA
 #define __PIN_0x01   PINA
@@ -191,6 +240,30 @@
 #define __PIN_0x75   PINH
 #define __PIN_0x76   PINH
 #define __PIN_0x77   PINH
+#define __PIN_0x80   PINJ
+#define __PIN_0x81   PINJ
+#define __PIN_0x82   PINJ
+#define __PIN_0x83   PINJ
+#define __PIN_0x84   PINJ
+#define __PIN_0x85   PINJ
+#define __PIN_0x86   PINJ
+#define __PIN_0x87   PINJ
+#define __PIN_0x90   PINK
+#define __PIN_0x91   PINK
+#define __PIN_0x92   PINK
+#define __PIN_0x93   PINK
+#define __PIN_0x94   PINK
+#define __PIN_0x95   PINK
+#define __PIN_0x96   PINK
+#define __PIN_0x97   PINK
+#define __PIN_0xa0   PINL
+#define __PIN_0xa1   PINL
+#define __PIN_0xa2   PINL
+#define __PIN_0xa3   PINL
+#define __PIN_0xa4   PINL
+#define __PIN_0xa5   PINL
+#define __PIN_0xa6   PINL
+#define __PIN_0xa7   PINL
 
 #define __DDR_0x00   DDRA
 #define __DDR_0x01   DDRA
@@ -254,6 +327,30 @@
 #define __DDR_0x75   DDRH
 #define __DDR_0x76   DDRH
 #define __DDR_0x77   DDRH
+#define __DDR_0x80   DDRJ
+#define __DDR_0x81   DDRJ
+#define __DDR_0x82   DDRJ
+#define __DDR_0x83   DDRJ
+#define __DDR_0x84   DDRJ
+#define __DDR_0x85   DDRJ
+#define __DDR_0x86   DDRJ
+#define __DDR_0x87   DDRJ
+#define __DDR_0x90   DDRK
+#define __DDR_0x91   DDRK
+#define __DDR_0x92   DDRK
+#define __DDR_0x93   DDRK
+#define __DDR_0x94   DDRK
+#define __DDR_0x95   DDRK
+#define __DDR_0x96   DDRK
+#define __DDR_0x97   DDRK
+#define __DDR_0xa0   DDRL
+#define __DDR_0xa1   DDRL
+#define __DDR_0xa2   DDRL
+#define __DDR_0xa3   DDRL
+#define __DDR_0xa4   DDRL
+#define __DDR_0xa5   DDRL
+#define __DDR_0xa6   DDRL
+#define __DDR_0xa7   DDRL
 
 #define __PORT_0x00   PORTA
 #define __PORT_0x01   PORTA
@@ -317,6 +414,31 @@
 #define __PORT_0x75   PORTH
 #define __PORT_0x76   PORTH
 #define __PORT_0x77   PORTH
+#define __PORT_0x80   PORTJ
+#define __PORT_0x81   PORTJ
+#define __PORT_0x82   PORTJ
+#define __PORT_0x83   PORTJ
+#define __PORT_0x84   PORTJ
+#define __PORT_0x85   PORTJ
+#define __PORT_0x86   PORTJ
+#define __PORT_0x87   PORTJ
+#define __PORT_0x90   PORTK
+#define __PORT_0x91   PORTK
+#define __PORT_0x92   PORTK
+#define __PORT_0x93   PORTK
+#define __PORT_0x94   PORTK
+#define __PORT_0x95   PORTK
+#define __PORT_0x96   PORTK
+#define __PORT_0x97   PORTK
+#define __PORT_0xa0   PORTL
+#define __PORT_0xa1   PORTL
+#define __PORT_0xa2   PORTL
+#define __PORT_0xa3   PORTL
+#define __PORT_0xa4   PORTL
+#define __PORT_0xa5   PORTL
+#define __PORT_0xa6   PORTL
+#define __PORT_0xa7   PORTL
+
 
 #define __BIT(gpio) __BIT_##gpio
 #define __MSK(gpio) (1 << __BIT(gpio))

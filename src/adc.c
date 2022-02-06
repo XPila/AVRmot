@@ -1,4 +1,5 @@
-//adc.c
+// adc.c
+
 #include "adc.h"
 
 #if (defined(ADC_CHAN_MSK) && defined(ADC_CHAN_CNT))

@@ -1,4 +1,5 @@
-//cmd.c - file stream command processor
+// cmd.c - file stream command processor
+
 #include "cmd.h"
 #include <string.h>
 #include <avr/pgmspace.h>

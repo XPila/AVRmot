@@ -71,6 +71,7 @@ OBJCOPY := $(if $(TOOLCHAIN_PREFIX),$(TOOLCHAIN_PREFIX)-)objcopy
 OBJDUMP := $(if $(TOOLCHAIN_PREFIX),$(TOOLCHAIN_PREFIX)-)objdump
 NM      := $(if $(TOOLCHAIN_PREFIX),$(TOOLCHAIN_PREFIX)-)nm
 AVRDUDE := bin/windows/avrdude/avrdude
+AVRDUDE_PORT := COM12
 
 # output files
 OUTDIR := $(OUT)/$(PROJECT).dir # file containing list of created directories
@@ -83,7 +84,7 @@ OUTLST := $(OUT)/$(PROJECT).lst # lst output file
 
 # all source
 ALLSRC := $(addprefix src/,\
-timer0.c sys.c uart.c rbuf.c adc.c gpio_$(MCU).c tmc2130.c st4.c cmd.c cmd_xyze.c \
+timer0.c sys.c uart.c rbuf.c adc.c gpio_$(MCU).c tmc2130.c st4.c st4_sr2d.c cmd.c cmd_xyze.c \
 )
 # einsy source
 ALLSRC += $(if $(findstring $(BOARD),10),\
@@ -101,9 +102,11 @@ FW_VERSION_FULL=$(FW_VERSION_FULL)\
 )
 
 # include directories
-INCLUDES := $(addprefix -I./,\
-src src/mmctl \
-)
+INCLUDES := -I./src
+# einsy includes
+INCLUDES += $(if $(findstring $(BOARD),10),-I./src/einsy)
+# mmctl includes
+INCLUDES += $(if $(findstring $(BOARD),20),-I./src/mmctl)
 
 # common flags (compilers and linker)
 CMNFLAGS := -g -Os -mmcu=$(MCU)
@@ -190,11 +193,12 @@ ifneq ("$(wildcard $(OUT))","")
 endif
 
 
+
 flash_usbasp: hex
-	$(AVRDUDE) -p $(MCU) -P usb -c usbasp -F -v -u -V -U flash:w:$(OUTHEX)
+	$(AVRDUDE) -p $(MCU) c usbasp -P usb --F -v -u -V -U flash:w:$(OUTHEX)
 
 flash_wiring: hex
-	$(AVRDUDE) -p $(MCU) -P usb -c usbasp -F -v -u -V -U flash:w:$(OUTHEX)
+	$(AVRDUDE) -p $(MCU) -c wiring -P $(AVRDUDE_PORT) -F -v -u -V -b115200 -D -U flash:w:$(OUTHEX)
 
 
 .PHONY: all build clean flash_usbasp flash_wiring test

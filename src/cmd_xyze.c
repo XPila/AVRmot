@@ -1,4 +1,5 @@
 // cmd_xyz.c
+
 #include "cmd_xyze.h"
 #include <util/delay.h>
 #include "tmc2130.h"
@@ -6,11 +7,11 @@
 #include "st4.h"
 
 
-int8_t cmd_do_mod_wout_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id)
+int8_t cmd_do_mod_wout_args_xyze(uint8_t mod_id, char pref, uint8_t cmd_id)
 {
 	int8_t ret = CMD_OK;
 //	uint8_t val;
-	if ((mod_id >= MOD_ID_X) && (mod_id <= MOD_ID_Z))
+	if ((mod_id >= MOD_ID_X) && (mod_id <= MOD_ID_E))
 	{
 		uint8_t axis = (mod_id - MOD_ID_X);
 		uint8_t mask = (1 << axis);
@@ -53,7 +54,7 @@ int8_t cmd_do_mod_wout_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id)
 	return CMD_ER_SYN;
 }
 
-int8_t cmd_do_mod_with_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id, char* pstr)
+int8_t cmd_do_mod_with_args_xyze(uint8_t mod_id, char pref, uint8_t cmd_id, char* pstr)
 {
 	int8_t ret;
 	int8_t n;
@@ -61,7 +62,7 @@ int8_t cmd_do_mod_with_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id, char*
 	var_num_t val1;
 //	var_num_t val2;
 //	var_num_t val3;
-	if ((mod_id >= MOD_ID_X) && (mod_id <= MOD_ID_Z))
+	if ((mod_id >= MOD_ID_X) && (mod_id <= MOD_ID_E))
 	{
 		uint8_t axis = (mod_id - MOD_ID_X);
 		uint8_t mask = (1 << axis);

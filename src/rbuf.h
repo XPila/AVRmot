@@ -1,4 +1,5 @@
-//rbuf.h - round buffer
+// rbuf.h - round buffer
+
 #ifndef _RBUF_H
 #define _RBUF_H
 

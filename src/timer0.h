@@ -1,4 +1,5 @@
-//timer0.h
+// timer0.h
+
 #ifndef _TIMER0_H
 #define _TIMER0_H
 

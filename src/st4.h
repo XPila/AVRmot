@@ -1,10 +1,13 @@
-//st4.h - four axis stepper motor control
+// st4.h - four axis stepper motor control
+
 #ifndef _ST4_H
 #define _ST4_H
 
 #include "config.h"
 #include <inttypes.h>
 #include <stdio.h>
+#include "st4_sr2d.h"
+
 
 //axis index and mask definitions
 #define ST4_X             0    // x-axis index
@@ -25,15 +28,7 @@
 #define ST4_FLG_RM     0x04
 #define ST4_FLG_DC     0x08
 
-//steprate thresholds [steps/s] for optimized delay calculation
-#define ST4_THR_SR0      32
-#define ST4_THR_SR1    7840    // 7808
-#define ST4_THR_SR2    9888    // 9856
-#define ST4_THR_SR3   13984    // 13952
-#define ST4_THR_SR4   22176    // 22144
 
-#define ST4_MIN_SR       32    // minimum steprate [steps/s]
-#define ST4_MAX_SR    22000    // maximum steprate [steps/s]
 
 //union for uint32/uint16
 typedef union
@@ -129,16 +124,6 @@ extern float st4_get_pos_mm(uint8_t axis);
 extern void st4_set_pos_mm(uint8_t axis, float pos_mm);
 
 extern void st4_setup_timer(void);
-
-extern uint16_t st4_sr2d2(uint16_t sr);
-
-extern void st4_gen_seg(uint16_t sr0, uint8_t sh, uint8_t* pseg);
-
-extern void st4_gen_tab(void);
-
-extern void st4_fprint_sr_d2(FILE* out, uint16_t sr0, uint16_t sr1);
-
-extern void st4_fprint_sr2d2_tab(FILE* out);
 
 extern void st4_fprint_axis(FILE* out, uint8_t axis);
 

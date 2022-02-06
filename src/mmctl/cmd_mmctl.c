@@ -1,4 +1,5 @@
 // cmd_mmctl.c
+
 #include "cmd_mmctl.h"
 #include <string.h>
 #include <avr/pgmspace.h>
@@ -15,8 +16,8 @@
 #define STR(x)  _STR(x)
 const char PROGMEM fw_version_full[] = STR(FW_VERSION_FULL);
 
-int8_t cmd_do_mod_wout_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id);
-int8_t cmd_do_mod_with_args_xyz(uint8_t mod_id, char pref, uint8_t cmd_id, char* pstr);
+int8_t cmd_do_mod_wout_args_xyze(uint8_t mod_id, char pref, uint8_t cmd_id);
+int8_t cmd_do_mod_with_args_xyze(uint8_t mod_id, char pref, uint8_t cmd_id, char* pstr);
 
 
 // parse module bitmask
@@ -88,6 +89,7 @@ const uint8_t PROGMEM cmd_ext_4[] = {
 'g','p','i','o',CMD_ID_GPIO,
 'g','p','c','f',CMD_ID_GPCF,
 's','t','e','p',CMD_ID_STEP,
+'h','o','m','e',CMD_ID_HOME,
 };
 
 uint8_t cmd_parse_tab_P(char* pstr, const uint8_t* ptab, uint8_t len, uint8_t cnt)
@@ -191,11 +193,11 @@ int8_t cmd_do_wout_args(uint16_t mod_msk, char pref, uint8_t cmd_id)
 		{
 			int8_t ret = CMD_OK;
 			if (mod_msk & MOD_MSK_X)
-				if ((ret = cmd_do_mod_wout_args_xyz(MOD_ID_X, pref, cmd_id)) < 0) return ret;
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_X, pref, cmd_id)) < 0) return ret;
 			if (mod_msk & MOD_MSK_Y)
-				if ((ret = cmd_do_mod_wout_args_xyz(MOD_ID_Y, pref, cmd_id)) < 0) return ret;
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_Y, pref, cmd_id)) < 0) return ret;
 			if (mod_msk & MOD_MSK_Z)
-				if ((ret = cmd_do_mod_wout_args_xyz(MOD_ID_Z, pref, cmd_id)) < 0) return ret;
+				if ((ret = cmd_do_mod_wout_args_xyze(MOD_ID_Z, pref, cmd_id)) < 0) return ret;
 			return ret;
 		}
 	return CMD_ER_SYN;
@@ -264,19 +266,19 @@ int8_t cmd_do_with_args(uint16_t mod_msk, char pref, uint8_t cmd_id, char* pstr)
 			if (mod_msk & MOD_MSK_X)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_X, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_X, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			if (mod_msk & MOD_MSK_Y)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Y, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_Y, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			if (mod_msk & MOD_MSK_Z)
 			{
 				while (pstr[n] == ' ') n++;
-				if ((ret = cmd_do_mod_with_args_xyz(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;
+				if ((ret = cmd_do_mod_with_args_xyze(MOD_ID_Z, pref, cmd_id, pstr + n)) < 0) return ret;
 				n += ret;
 			}
 			return CMD_OK;

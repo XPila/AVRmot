@@ -1,4 +1,5 @@
-//st4.c
+// st4.c
+
 #include "st4.h"
 #include <string.h>
 #include <avr/io.h>
@@ -45,6 +46,10 @@ uint16_t st4_msr = 0;                  // max steprate or diagonal steprate for 
 uint16_t st4_d2 = 0;                   // timer delay [500ns]
 uint16_t st4_em = 0;                   // endstop mask
 st4_axis_t st4_axis[ST4_NUMAXES+1];    // axis parameters
+
+uint16_t st4_test_index;               // test index
+uint16_t st4_test_buff[2048];          // test buffer
+
 
 //macro shortcuts for more readable code
 #define _res(a) (st4_axis[a].res)
@@ -230,6 +235,8 @@ int8_t st4_mor(uint8_t axis, int32_t val)
 	_srxh(axis) = _sr0(axis);
 	_nse(axis) = 64; //skip endstop check for first 64 steps
 	st4_esw &= ~msk; //reset endstop status
+	_d2s(axis) = 0;
+	_cnt(axis) = 0;
 	st4_msk |= msk;
 	return 0;
 }
@@ -265,7 +272,9 @@ int8_t st4_mov(uint8_t axis, int32_t val)
 		_srxh(axis) = (uint16_t)val;
 		_nse(axis) = 64; //skip endstop check for first 64 steps
 		st4_esw &= ~msk; //reset endstop status
-		st4_msk |= msk;
+		_d2s(axis) = 0;
+		_cnt(axis) = 0;
+		st4_msk |= msk; //
 	}
 	return 0;
 }
@@ -356,8 +365,9 @@ void st4_set_pos_mm(uint8_t axis, float pos_mm)
 
 inline uint32_t calc_dsrx(uint16_t acc, uint16_t d2)
 {
-	if (d2 < 256) return ((uint32_t)(acc * st4_d2)) << 3;
-	return ((uint32_t)acc * st4_d2) << 3;
+//	if (d2 < 256) return ((uint32_t)(acc * st4_d2)) << 3;
+//	return ((uint32_t)acc * st4_d2) << 3;
+	return ((uint32_t)acc * d2) << 3;
 }
 
 inline void st4_step_axis_indep(uint8_t axis, uint8_t mask)
@@ -427,6 +437,64 @@ inline uint8_t st4_cycle_axis_indep(uint8_t axis, uint8_t mask)
 	return 0;
 }
 
+inline void st4_cycle_indep(void)
+{
+//	uint8_t axis;
+	uint8_t sm = 0;
+//	uint8_t em = 0;
+	uint16_t tim0;
+	uint16_t tim1;
+	uint16_t tim2;
+	TCNTn = 0;
+	st4_max = st4_max_sr_axis();
+	st4_msr = _srxh(st4_max);
+	tim0 = TCNTn;
+	if (st4_msr)
+	{
+		st4_em = ST4_GET_END() & st4_end;
+//		em &= st4_msk;
+//		st4_esw |= em;
+//		st4_msk &= ~st4_esw;
+//		if (em & 0x01) st4_msk &= ~0x01;
+//		if (em & 0x02) st4_msk &= ~0x02;
+		st4_d2 = st4_sr2d2(st4_msr);
+		tim1 = TCNTn;
+//		printf_P(PSTR("msr=%u d2=%u srx=%u x=%li\n"), st4_msr, st4_d2, _srxh(0), _pos(0));
+//		printf_P(PSTR("maxsr=%u d2=%u srx=%u sry=%u x=%li y=%li\n"), st4_msr, st4_d2, _srxh(0), _srxh(1), _pos(0), _pos(1));
+//		printf_P(PSTR("maxsr=%u d2=%u srx=%u sry=%u x=%li y=%li flg=%u nac=%u nrm=%lu ndc=%u\n"), st4_msr, st4_d2, _srxh(0), _srxh(1), _pos(0), _pos(1), _flg(0), _cac(0), _crm(0), _cdc(0));
+		if (st4_msk & 0x01)
+			sm |= st4_cycle_axis_indep(0, 0x01);
+#if (ST4_NUMAXES > 1)
+		if (st4_msk & 0x02)
+			sm |= st4_cycle_axis_indep(1, 0x02);
+#endif //(ST4_NUMAXES > 1)
+#if (ST4_NUMAXES > 2)
+		if (st4_msk & 0x04)
+			sm |= st4_cycle_axis_indep(2, 0x04);
+#endif //(ST4_NUMAXES > 2)
+#if (ST4_NUMAXES > 3)
+		if (st4_msk & 0x08)
+			sm |= st4_cycle_axis_indep(3, 0x08);
+#endif //(ST4_NUMAXES > 3)
+		ST4_DO_STEP(sm);
+	}
+	else
+		st4_d2 = 2000;
+	OCRnA = st4_d2;
+	tim2 = TCNTn;
+	if (tim2 >= st4_d2) TCNTn = st4_d2 - 10;
+//	if (st4_msk & 0x0f)
+//		printf_P(PSTR("tim0=%u tim1=%u tim2=%u\n"), tim0, tim1, tim2);
+	tim0 = tim0; // prevent warning
+	tim1 = tim1; // prevent warning
+	if (st4_msk & 0x03)
+	{
+		st4_test_buff[st4_test_index++] = tim2 - tim0;
+		if (st4_test_index >= (sizeof(st4_test_buff)/sizeof(uint16_t)))
+			st4_test_index = 0;
+	}
+}
+
 #define M (ST4_NUMAXES)
 
 inline uint8_t st4_cycle_axis_intpol(uint8_t axis, uint8_t mask)
@@ -484,56 +552,6 @@ inline void st4_step_intpol(void)
 
 #undef M
 
-inline void st4_cycle_indep(void)
-{
-//	uint8_t axis;
-	uint8_t sm = 0;
-//	uint8_t em = 0;
-	uint16_t tim0;
-	uint16_t tim1;
-	uint16_t tim2;
-	TCNTn = 0;
-	st4_max = st4_max_sr_axis();
-	st4_msr = _srxh(st4_max);
-	tim0 = TCNTn;
-	if (st4_msr)
-	{
-		st4_em = ST4_GET_END() & st4_end;
-//		em &= st4_msk;
-//		st4_esw |= em;
-//		st4_msk &= ~st4_esw;
-//		if (em & 0x01) st4_msk &= ~0x01;
-//		if (em & 0x02) st4_msk &= ~0x02;
-		st4_d2 = st4_sr2d2(st4_msr);
-		tim1 = TCNTn;
-//		printf_P(PSTR("maxsr=%u d2=%u srx=%u sry=%u x=%li y=%li\n"), st4_msr, st4_d2, _srxh(0), _srxh(1), _pos(0), _pos(1));
-//		printf_P(PSTR("maxsr=%u d2=%u srx=%u sry=%u x=%li y=%li flg=%u nac=%u nrm=%lu ndc=%u\n"), st4_msr, st4_d2, _srxh(0), _srxh(1), _pos(0), _pos(1), _flg(0), _cac(0), _crm(0), _cdc(0));
-		if (st4_msk & 0x01)
-			sm |= st4_cycle_axis_indep(0, 0x01);
-#if (ST4_NUMAXES > 1)
-		if (st4_msk & 0x02)
-			sm |= st4_cycle_axis_indep(1, 0x02);
-#endif //(ST4_NUMAXES > 1)
-#if (ST4_NUMAXES > 2)
-		if (st4_msk & 0x04)
-			sm |= st4_cycle_axis_indep(2, 0x04);
-#endif //(ST4_NUMAXES > 2)
-#if (ST4_NUMAXES > 3)
-		if (st4_msk & 0x08)
-			sm |= st4_cycle_axis_indep(3, 0x08);
-#endif //(ST4_NUMAXES > 3)
-		ST4_DO_STEP(sm);
-	}
-	else
-		st4_d2 = 2000;
-	OCRnA = st4_d2;
-	tim2 = TCNTn;
-	if (tim2 >= st4_d2) TCNTn = st4_d2 - 10;
-//	if (st4_msk & 0x0f)
-//		printf_P(PSTR("tim0=%u tim1=%u tim2=%u\n"), tim0, tim1, tim2);
-	tim0 = tim0; // prevent warning
-	tim1 = tim1; // prevent warning
-}
 
 inline void st4_cycle_intpol(void)
 {
@@ -584,138 +602,10 @@ inline void st4_cycle_intpol(void)
 
 void st4_cycle(void)
 {
-//	st4_cycle_indep();
+	st4_cycle_indep();
 //	st4_cycle_intpol();
 }
 
-
-
-
-//look up table for calculating delay (3 segments, 128 values)
-uint8_t st4_tab_sr2d2[128+128+128] = {
-//seg0
-255, 254, 254, 253, 253, 252, 252, 251, 251, 250, 250, 249, 249, 248, 248, 247, 247, 246, 246, 245, 245, 244, 244, 243, 243, 242, 242, 242, 241, 241, 240, 240,
-239, 239, 238, 238, 237, 237, 237, 236, 236, 235, 235, 234, 234, 233, 233, 233, 232, 232, 231, 231, 230, 230, 230, 229, 229, 228, 228, 227, 227, 227, 226, 226,
-225, 225, 225, 224, 224, 223, 223, 223, 222, 222, 221, 221, 221, 220, 220, 220, 219, 219, 218, 218, 218, 217, 217, 216, 216, 216, 215, 215, 215, 214, 214, 214,
-213, 213, 212, 212, 212, 211, 211, 211, 210, 210, 210, 209, 209, 209, 208, 208, 207, 207, 207, 206, 206, 206, 205, 205, 205, 204, 204, 204, 203, 203, 203, 202,
-//seg1
-202, 201, 201, 200, 199, 199, 198, 197, 197, 196, 196, 195, 194, 194, 193, 193, 192, 191, 191, 190, 190, 189, 189, 188, 187, 187, 186, 186, 185, 185, 184, 184,
-183, 182, 182, 181, 181, 180, 180, 179, 179, 178, 178, 177, 177, 176, 176, 175, 175, 174, 174, 173, 173, 172, 172, 171, 171, 171, 170, 170, 169, 169, 168, 168,
-167, 167, 166, 166, 166, 165, 165, 164, 164, 163, 163, 163, 162, 162, 161, 161, 160, 160, 160, 159, 159, 158, 158, 158, 157, 157, 156, 156, 156, 155, 155, 155,
-154, 154, 153, 153, 153, 152, 152, 152, 151, 151, 150, 150, 150, 149, 149, 149, 148, 148, 148, 147, 147, 147, 146, 146, 146, 145, 145, 145, 144, 144, 144, 143,
-//seg2
-143, 142, 141, 141, 140, 140, 139, 138, 138, 137, 136, 136, 135, 135, 134, 134, 133, 132, 132, 131, 131, 130, 130, 129, 129, 128, 128, 127, 127, 126, 126, 125,
-125, 124, 124, 123, 123, 122, 122, 121, 121, 120, 120, 119, 119, 118, 118, 117, 117, 117, 116, 116, 115, 115, 114, 114, 114, 113, 113, 112, 112, 112, 111, 111,
-110, 110, 110, 109, 109, 109, 108, 108, 107, 107, 107, 106, 106, 106, 105, 105, 105, 104, 104, 103, 103, 103, 102, 102, 102, 101, 101, 101, 100, 100, 100, 100,
- 99,  99,  99,  98,  98,  98,  97,  97,  97,  96,  96,  96,  96,  95,  95,  95,  94,  94,  94,  94,  93,  93,  93,  92,  92,  92,  92,  91,  91,  91,  91,  90
-};
-
-uint16_t st4_sr2d2(uint16_t sr)
-{
-	if (sr == 0) return 0; // zero steprate - returns 0
-	if (sr >= ST4_THR_SR3)
-		return st4_tab_sr2d2[256 + (sr >> 6) - 218];
-	if (sr >= ST4_THR_SR2)
-		return st4_tab_sr2d2[128 + (sr >> 5) - 308];
-	if (sr >= ST4_THR_SR1)
-		return st4_tab_sr2d2[(sr >> 4) - 488];
-	if (sr >= ST4_THR_SR0)
-		return (uint16_t)(((uint32_t)2000000 + (sr >> 1)) / sr);
-	return 0;
-//	if ()
-//		return ((uint32_t)2000000) / sr;
-//		st4_tab_B[(sr >> 8) - 31]
-}
-
-// generate LUT segment (128 bytes)
-//  sr0 - starting steprate [steps/s]
-//  sh  - steprate shift [bits]
-void st4_gen_seg(uint16_t sr0, uint8_t sh, uint8_t* pseg)
-{
-	uint8_t c = 128;           //sub-segment count
-	uint8_t s = 1 << sh;       //sub-segment len
-//	uint16_t srx;              //shifted steprate [s*steps/s]
-//	uint16_t srx0 = sr0 >> sh; //shifted starting steprate [l*steps/s]
-	uint16_t sr;               //steprate [steps/s]
-	float    df;               //delay as float [us]
-	uint16_t d2;               //delay*2 as 16bit uint [0.5us]
-	float    de;               //delay error for d2 [%]
-	float    df_sum;           //sum of df values in any sub-segment
-	uint8_t i;
-	uint8_t j;
-	int n = 0;
-	for (i = 0; i < c; i++)
-	{
-		df_sum = 0;
-		for (j = 0; j < s; j++)
-		{
-			sr = sr0 + n;
-			df = (float)1000000 / sr;
-			df_sum += df;
-			d2 = (int)(2 * df + 0.5);
-			de = 100 * (((float)d2 / 2 - df) / df);
-//			printf("%5d %5.2f %5.2f %5.2f%%\n", sr, df, (float)d2/2, de);
-			n++;
-		}
-		d2 = (int)(2 * df_sum / s + 0.5);
-		if (pseg) pseg[i] = (uint8_t)d2;
-//		printf_P(PSTR("%5d %5.2f\n"), sr - s + 1, (float)d2/2);
-		printf_P(PSTR("%3d, "), d2);
-	}
-	de = de; // prevent warning
-}
-
-void st4_gen_tab(void)
-{
-	st4_gen_seg(ST4_THR_SR1, 4, st4_tab_sr2d2 + 0);
-	st4_gen_seg(ST4_THR_SR2, 5, st4_tab_sr2d2 + 128);
-	st4_gen_seg(ST4_THR_SR3, 6, st4_tab_sr2d2 + 256);
-}
-
-void st4_fprint_sr_d2(FILE* out, uint16_t sr0, uint16_t sr1)
-{
-	uint16_t sr; //steprate [steps/s]
-	float    df; //delay as float [us]
-	uint16_t d2; //delay*2 as 16bit int, calculated [0.5us resolution]
-	uint16_t d2A; //delay*2 as 16bit int, from table [0.5us resolution]
-	float    de; //delay error for d2 [%]
-	float    deA; //delay error for d2A [%]
-	for (sr = sr0; sr < sr1; sr++)
-	{
-		df = (float)1000000 / sr;
-		d2 = (int)(2 * df + 0.5);
-		d2A = st4_sr2d2(sr);
-		de = 100 * (((float)d2/2 - df) / df);
-		deA = 100 * (((float)d2A/2 - df) / df);
-		fprintf_P(out, PSTR("%5d %5.2f %5.2f %5.2f%% %5.2f %5.2f%% \n"), sr, df, (float)d2/2, de, (float)d2A/2, deA);
-	}
-}
-
-void st4_fprint_sr2d2_seg(FILE* out, uint8_t* pseg)
-{
-	uint8_t i;
-	uint8_t j;
-	fprintf_P(out, PSTR("=("));
-	for (i = 0; i < 4; i++)
-	{
-		for (j = 0; j < 32; j++)
-		{
-			fprintf_P(out, PSTR("%u"), pgm_read_byte(pseg + 32*i + j));
-			if ((i < 3) || (j < 31))
-				fprintf_P(out, PSTR(", "));
-		}
-		if (i < 3)
-			fprintf_P(out, PSTR("\n"));
-	}
-	fprintf_P(out, PSTR(");\n"));
-}
-
-void st4_fprint_sr2d2_tab(FILE* out)
-{
-	st4_fprint_sr2d2_seg(stdout, st4_tab_sr2d2 + 0);
-	st4_fprint_sr2d2_seg(stdout, st4_tab_sr2d2 + 128);
-	st4_fprint_sr2d2_seg(stdout, st4_tab_sr2d2 + 256);
-}
 
 void st4_fprint_axis(FILE* out, uint8_t axis)
 {

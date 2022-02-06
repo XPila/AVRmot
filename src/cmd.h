@@ -1,6 +1,8 @@
 // cmd.h - file stream command processor
+
 #ifndef _CMD_H
 #define _CMD_H
+
 #include <inttypes.h>
 #include <stdio.h>
 

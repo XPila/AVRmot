@@ -1,4 +1,4 @@
-//sys.c
+// sys.c
 
 #include "sys.h"
 #include <avr/io.h>

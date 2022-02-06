@@ -1,4 +1,5 @@
-//uart.c
+// uart.c
+
 #include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>

@@ -1,4 +1,5 @@
 // config.h - main configuration file
+
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
@@ -21,7 +22,7 @@
 
 //--------------------------------------
 // CMD configuration (file stream command processor)
-#define CMD_MAX_LINE 42         // ;-)
+#define CMD_MAX_LINE            64          // line buffer length
 
 
 //--------------------------------------
@@ -95,6 +96,8 @@
 #define ST4_GET_END             tmc2130_get_diag
 // step function
 #define ST4_DO_STEP             tmc2130_step
+// steprate to delay calculation method
+#define ST4_SR2D2               1
 
 
 #endif //_CONFIG_H

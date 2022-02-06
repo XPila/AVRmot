@@ -1,4 +1,5 @@
-//rbuf.c - round buffer
+// rbuf.c - round buffer
+
 #include "rbuf.h"
 //#include <avr/interrupt.h>
 

@@ -17,6 +17,9 @@ uint8_t gpio_get(uint8_t gpio)
 	case 5: v = PINF; break;
 	case 6: v = PING; break;
 	case 7: v = PINH; break;
+	case 8: v = PINJ; break;
+	case 9: v = PINK; break;
+	case 10: v = PINL; break;
 	}
 	return (v & (1 << (gpio & 0x07)))?1:0;
 }
@@ -34,6 +37,9 @@ void gpio_set(uint8_t gpio, uint8_t val)
 	case 5: v = PORTF; break;
 	case 6: v = PORTG; break;
 	case 7: v = PORTH; break;
+	case 8: v = PORTJ; break;
+	case 9: v = PORTK; break;
+	case 10: v = PORTL; break;
 	}
 	if (val) v |= (1 << (gpio & 0x07)); else v &= ~(1 << (gpio & 0x07));
 	switch (gpio >> 4)
@@ -46,6 +52,9 @@ void gpio_set(uint8_t gpio, uint8_t val)
 	case 5: PORTF = v; break;
 	case 6: PORTG = v; break;
 	case 7: PORTH = v; break;
+	case 8: PORTJ = v; break;
+	case 9: PORTK = v; break;
+	case 10: PORTL = v; break;
 	}
 }
 
@@ -62,6 +71,9 @@ void gpio_cfg(uint8_t gpio, uint8_t cfg)
 	case 5: v = DDRF; break;
 	case 6: v = DDRG; break;
 	case 7: v = DDRH; break;
+	case 8: v = DDRJ; break;
+	case 9: v = DDRK; break;
+	case 10: v = DDRL; break;
 	}
 	if (cfg) v |= (1 << (gpio & 0x07)); else v &= ~(1 << (gpio & 0x07));
 	switch (gpio >> 4)
@@ -74,5 +86,8 @@ void gpio_cfg(uint8_t gpio, uint8_t cfg)
 	case 5: DDRF = v; break;
 	case 6: DDRG = v; break;
 	case 7: DDRH = v; break;
+	case 8: DDRJ = v; break;
+	case 9: DDRK = v; break;
+	case 10: DDRL = v; break;
 	}
 }

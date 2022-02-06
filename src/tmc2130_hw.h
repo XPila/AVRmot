@@ -1,4 +1,5 @@
 // tmc2130_mmctl.h
+
 #ifndef _TMC2130_MMCTL_H
 #define _TMC2130_MMCTL_H
 
@@ -8,6 +9,9 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif // defined(__cplusplus)
+
+
+extern uint8_t tmc2130_ena;
 
 
 extern void tmc2130_init(void);

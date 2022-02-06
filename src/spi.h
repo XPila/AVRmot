@@ -1,4 +1,5 @@
 // spi.h - hardware SPI
+
 #ifndef SPI_H
 #define SPI_H
 
